@@ -71,3 +71,41 @@ func (r *ConfigRepository) FindByKey(key string) (*Config, error) {
     // r이 this 역할을 함
 }
 ```
+
+### make 함수
+slice, map, channel을 초기화하는 함수
+
+slice에서 make
+```go
+// 방법 1: 빈 슬라이스 (길이 0)
+users := []string{}
+
+// 방법 2: mke로 길이 지정
+users := make([]string, 5) // 길이 5, 용량 5
+users := make([]string, 0, 10) // 길이 0, 용량 10
+```
+
+#### make를 사용하는 이유
+```go
+	slackUsers := make([]*domain.SlackUser, len(dto))
+
+	for i, item := range dto {
+		slackUsers[i] = domain.NewSlackUser(...) // 인덱스로 할당
+	}
+```
+미리 길이를 정해두면 인덱스 바로 접근 가능함
+만약에 make를 사용하지 않으면
+```go
+slackUsers := []*domain.SalckUser{} // 빈 slice
+
+for _, item range dto {
+    slackUser := domain.NewSalckUser(...)
+    slackUsers = append(...)// append로 추가해줘야 함
+}
+```
+
+### 성능 차이
+* `make([]T, n)` : 메모리 한 번에 할당, 인덱스 접근
+* `append` : 용량 초과 시 메모리 재할당 발생
+
+길이를 미리 알 수 있다면 `make` 가 더 효율적이다.
