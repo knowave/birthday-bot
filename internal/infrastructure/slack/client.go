@@ -23,7 +23,7 @@ func NewClient(botToken string) *Client {
 }
 
 type Message struct {
-	Channel string `json:"chaneel"`
+	Channel string `json:"channel"`
 	Text	string `json:"text"`
 }
 
@@ -53,7 +53,7 @@ func (c *Client) SendMessage(channel, text string) error {
         return fmt.Errorf("요청 생성 실패: %w", err)
     }
 
-    req.Header.Set("Content-Type", "application/json")
+    req.Header.Set("Content-Type", "application/json; charset=utf-8")
     req.Header.Set("Authorization", "Bearer "+c.botToken)
 
     resp, err := c.httpClient.Do(req)
