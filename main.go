@@ -19,7 +19,7 @@ func main() {
         "localhost",
         "3306",
         "root",
-        "password",  // 본인 비밀번호로 변경
+        "root",
         "birthday_bot",
     )
     if err != nil {
