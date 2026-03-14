@@ -16,7 +16,7 @@ import (
 func main() {
     // 1. DB 연결
     db, err := database.NewDatabase(
-        "localhost",
+        "host.docker.internal",
         "3306",
         "root",
         "root",
