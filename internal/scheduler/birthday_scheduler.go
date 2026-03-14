@@ -35,7 +35,7 @@ func NewBirthdayScheduler(
 }
 
 func (s *BirthdayScheduler) Start() error {
-    // 매일 오전 10시 (한국 시간)
+    // 매일 오전 10시
     _, err := s.cron.AddFunc("0 10 * * *", s.sendBirthdayNotification)
     if err != nil {
         return err
@@ -53,8 +53,7 @@ func (s *BirthdayScheduler) Stop() {
 
 func (s *BirthdayScheduler) sendBirthdayNotification() {
     log.Println("🔍 오늘의 생일자 조회 중...")
-
-    // 오늘 생일자 조회
+    
     users, err := s.slackUserService.GetTodayBirthdays()
     if err != nil {
         log.Printf("❌ 생일자 조회 실패: %v", err)
@@ -66,14 +65,12 @@ func (s *BirthdayScheduler) sendBirthdayNotification() {
         return
     }
 
-    // 채널 ID 조회
     channel, err := s.configService.GetSlackChannel()
     if err != nil {
         log.Printf("❌ 채널 조회 실패: %v", err)
         return
     }
 
-    // BirthdayUser로 변환
     birthdayUsers := make([]slack.BirthdayUser, len(users))
     for i, u := range users {
         birthdayUsers[i] = slack.BirthdayUser{
