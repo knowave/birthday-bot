@@ -16,7 +16,7 @@ func NewConfigRepository(db *gorm.DB) *ConfigRepository {
 
 func (r *ConfigRepository) FindByKey(key string) (*domain.Config, error) {
 	var config domain.Config
-	err := r.db.Where("key = ?", key).First(&config).Error
+	err := r.db.Where("`key` = ?", key).First(&config).Error
 
 	if err != nil {
 		return nil, err
