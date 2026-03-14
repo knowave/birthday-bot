@@ -16,3 +16,7 @@ func NewConfig(key, value string) *Config {
 		Value: value,
 	}
 }
+
+func (c *Config) UpdateValue(value string) {
+	c.Value = value
+}

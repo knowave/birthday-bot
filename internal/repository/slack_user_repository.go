@@ -15,7 +15,7 @@ func NewSlackUserRepository(db *gorm.DB) *SlackUserRepository {
 	return &SlackUserRepository{db: db}
 }
 
-func (r *SlackUserRepository) FindById(id uint) (*domain.SlackUser, error) {
+func (r *SlackUserRepository) FindByID(id uint) (*domain.SlackUser, error) {
 	var slackUser domain.SlackUser
 	err := r.db.First(&slackUser, id).Error
 

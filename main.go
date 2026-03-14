@@ -11,7 +11,7 @@ func main() {
 		"localhost",  // host
         "3306",       // port
         "root",       // user
-        "password",   // password (본인 MySQL 비밀번호로 변경)
+        "root",   // password (본인 MySQL 비밀번호로 변경)
         "birthday_bot", // dbname
 	)
 

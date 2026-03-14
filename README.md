@@ -40,3 +40,34 @@ func main() {
     fmt.Println(config.Value)  // "new" (바뀜!)
 }
 ```
+
+Go는 class가 없어서 생성자 주입을 아래와 같이함.
+
+```kotlin
+class ConfigRepository (
+    private val db: Database
+) {
+    fun findByKey(Key: String): Config? {
+        ...
+    }
+}
+
+val repository = ConfigRepository(db)
+```
+
+```go
+// struct로 필드만 정의 (class의 property)
+type ConfigRepository struct {
+    db *gorm.DB
+}
+
+// 팩토리 함수가 생성자 주입을 해주는 역할
+func NewConfigRepository(db *gorm.DB) *ConfigRepository {
+    return &ConfigRepository{db: db}
+}
+
+// 메서드는 struct에 붙이는 함수
+func (r *ConfigRepository) FindByKey(key string) (*Config, error) {
+    // r이 this 역할을 함
+}
+```
