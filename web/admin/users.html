@@ -421,6 +421,8 @@
         return;
       }
 
+      if (!confirm("수정하시겠습니까?")) return;
+
       try {
         await requestJSON(`/api/slack-users/${id}`, {
           method: "PUT",
@@ -430,8 +432,7 @@
             birthday: toApiBirthday(birthday)
           })
         });
-        await loadUsers();
-        setStatus("사용자 정보를 수정했습니다.");
+        window.location.reload();
       } catch (error) {
         setStatus(error.message, true);
       }
