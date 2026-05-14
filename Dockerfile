@@ -18,4 +18,6 @@ COPY --from=builder /app/birthday-bot .
 RUN apk add --no-cache tzdata
 ENV TZ=Asia/Seoul
 
+EXPOSE 7777
+
 CMD ["./birthday-bot"]

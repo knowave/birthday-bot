@@ -28,7 +28,7 @@ func (r *SlackUserRepository) FindByID(id uint) (*domain.SlackUser, error) {
 
 func (r *SlackUserRepository) FindByEmail(email string) (*domain.SlackUser, error) {
 	var slackUser domain.SlackUser
-	err := r.db.Where("email = ?", email).First(slackUser).Error
+	err := r.db.Where("email = ?", email).First(&slackUser).Error
 
 	if err != nil {
 		return nil, err
@@ -49,18 +49,18 @@ func (r *SlackUserRepository) FindByBirthday(month time.Month, day int) ([]domai
 }
 
 func (r *SlackUserRepository) FindAll() ([]domain.SlackUser, error) {
-    var users []domain.SlackUser
-    err := r.db.Find(&users).Error
+	var users []domain.SlackUser
+	err := r.db.Find(&users).Error
 
-    if err != nil {
-        return nil, err
-    }
+	if err != nil {
+		return nil, err
+	}
 
-    return users, nil
+	return users, nil
 }
 
 func (r *SlackUserRepository) Save(user *domain.SlackUser) error {
-    return r.db.Save(user).Error
+	return r.db.Save(user).Error
 }
 
 func (r *SlackUserRepository) SaveAllInBatches(slackUsers []*domain.SlackUser, batchSize int) error {
@@ -76,5 +76,5 @@ func (r *SlackUserRepository) SaveAllInBatches(slackUsers []*domain.SlackUser, b
 }
 
 func (r *SlackUserRepository) Delete(id uint) error {
-    return r.db.Delete(&domain.SlackUser{}, id).Error
+	return r.db.Delete(&domain.SlackUser{}, id).Error
 }

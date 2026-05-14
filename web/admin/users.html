@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Birthday Bot Users</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --border: #d7dde5;
+      --muted: #667085;
+      --bg: #f7f8fa;
+      --text: #1f2937;
+      --danger: #b42318;
+      --primary: #175cd3;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+    }
+
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 28px auto;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    h1, h2 {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 24px;
+      line-height: 1.25;
+    }
+
+    h2 {
+      font-size: 17px;
+      margin-bottom: 10px;
+    }
+
+    button {
+      min-height: 34px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--text);
+      cursor: pointer;
+      font: inherit;
+      padding: 6px 10px;
+      white-space: nowrap;
+    }
+
+    button:hover {
+      border-color: #98a2b3;
+      background: #f9fafb;
+    }
+
+    button.primary {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: #fff;
+    }
+
+    button.danger {
+      border-color: #fecdca;
+      color: var(--danger);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .panel {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .status {
+      min-height: 20px;
+      margin: 0 0 12px;
+      color: var(--muted);
+    }
+
+    .status.error {
+      color: var(--danger);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 860px;
+    }
+
+    th, td {
+      border-bottom: 1px solid #eaecf0;
+      padding: 8px;
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      color: #475467;
+      font-size: 13px;
+      font-weight: 600;
+      background: #f9fafb;
+    }
+
+    input {
+      width: 100%;
+      min-height: 34px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font: inherit;
+      padding: 6px 8px;
+    }
+
+    input[readonly] {
+      background: #f2f4f7;
+      color: #475467;
+    }
+
+    .actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .empty {
+      padding: 24px 8px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 720px) {
+      main {
+        width: calc(100% - 20px);
+        margin: 16px auto;
+      }
+
+      header {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .toolbar button {
+        flex: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>Birthday Bot Users</h1>
+        <p class="status" id="status">사용자 목록을 불러오는 중입니다.</p>
+      </div>
+      <div class="toolbar">
+        <button type="button" id="reloadButton">새로고침</button>
+      </div>
+    </header>
+
+    <section class="panel" aria-labelledby="add-title">
+      <h2 id="add-title">사용자 추가</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>이름</th>
+              <th>이메일</th>
+              <th>Slack User ID</th>
+              <th>생일</th>
+              <th>삭제</th>
+            </tr>
+          </thead>
+          <tbody id="createRows"></tbody>
+        </table>
+      </div>
+      <div class="toolbar" style="margin-top: 12px;">
+        <button type="button" id="addRowButton">행 추가</button>
+        <button type="button" class="primary" id="saveBatchButton">일괄 저장</button>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="list-title">
+      <h2 id="list-title">사용자 목록</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 64px;">ID</th>
+              <th>이름</th>
+              <th>이메일</th>
+              <th>Slack User ID</th>
+              <th>생일</th>
+              <th style="width: 150px;">작업</th>
+            </tr>
+          </thead>
+          <tbody id="userRows"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="emptyState" hidden>등록된 사용자가 없습니다.</div>
+    </section>
+  </main>
+
+  <script>
+    const statusEl = document.querySelector("#status");
+    const createRowsEl = document.querySelector("#createRows");
+    const userRowsEl = document.querySelector("#userRows");
+    const emptyStateEl = document.querySelector("#emptyState");
+    const reloadButton = document.querySelector("#reloadButton");
+    const addRowButton = document.querySelector("#addRowButton");
+    const saveBatchButton = document.querySelector("#saveBatchButton");
+
+    function setStatus(message, isError = false) {
+      statusEl.textContent = message;
+      statusEl.classList.toggle("error", isError);
+    }
+
+    function toDateInputValue(value) {
+      if (!value) return "";
+      return value.slice(0, 10);
+    }
+
+    function toApiBirthday(value) {
+      return `${value}T00:00:00+09:00`;
+    }
+
+    function inputCell(name, type = "text", value = "", readonly = false) {
+      const td = document.createElement("td");
+      const input = document.createElement("input");
+      input.name = name;
+      input.type = type;
+      input.value = value || "";
+      input.readOnly = readonly;
+      td.appendChild(input);
+      return td;
+    }
+
+    function getInput(row, name) {
+      return row.querySelector(`[name="${name}"]`);
+    }
+
+    function addCreateRow() {
+      const row = document.createElement("tr");
+      row.appendChild(inputCell("name"));
+      row.appendChild(inputCell("email", "email"));
+      row.appendChild(inputCell("slack_user_id"));
+      row.appendChild(inputCell("birthday", "date"));
+
+      const actionCell = document.createElement("td");
+      const deleteButton = document.createElement("button");
+      deleteButton.type = "button";
+      deleteButton.className = "danger";
+      deleteButton.textContent = "행 삭제";
+      deleteButton.addEventListener("click", () => {
+        row.remove();
+        if (createRowsEl.children.length === 0) {
+          addCreateRow();
+        }
+      });
+      actionCell.appendChild(deleteButton);
+      row.appendChild(actionCell);
+      createRowsEl.appendChild(row);
+    }
+
+    function readCreateRows() {
+      return [...createRowsEl.querySelectorAll("tr")].map((row) => ({
+        name: getInput(row, "name").value.trim(),
+        email: getInput(row, "email").value.trim(),
+        slack_user_id: getInput(row, "slack_user_id").value.trim(),
+        birthday: getInput(row, "birthday").value
+      })).filter((user) => (
+        user.name || user.email || user.slack_user_id || user.birthday
+      ));
+    }
+
+    function validateUser(user) {
+      return user.name && user.email && user.slack_user_id && user.birthday;
+    }
+
+    async function requestJSON(url, options = {}) {
+      const response = await fetch(url, {
+        headers: { "Content-Type": "application/json" },
+        ...options
+      });
+
+      if (!response.ok) {
+        let message = `요청 실패 (${response.status})`;
+        try {
+          const body = await response.json();
+          if (body.error) message = body.error;
+        } catch (_) {
+          // Keep the status-based message when the response is not JSON.
+        }
+        throw new Error(message);
+      }
+
+      if (response.status === 204) return null;
+      return response.json();
+    }
+
+    async function loadUsers() {
+      setStatus("사용자 목록을 불러오는 중입니다.");
+      reloadButton.disabled = true;
+      try {
+        const users = await requestJSON("/api/slack-users");
+        renderUsers(users);
+        setStatus(`${users.length}명의 사용자를 불러왔습니다.`);
+      } catch (error) {
+        setStatus(error.message, true);
+      } finally {
+        reloadButton.disabled = false;
+      }
+    }
+
+    function renderUsers(users) {
+      userRowsEl.replaceChildren();
+      emptyStateEl.hidden = users.length > 0;
+
+      users.forEach((user) => {
+        const row = document.createElement("tr");
+        const idCell = document.createElement("td");
+        idCell.textContent = user.ID;
+        row.appendChild(idCell);
+        row.appendChild(inputCell("name", "text", user.Name));
+        row.appendChild(inputCell("email", "email", user.Email));
+        row.appendChild(inputCell("slack_user_id", "text", user.SlackUserID, true));
+        row.appendChild(inputCell("birthday", "date", toDateInputValue(user.Birthday)));
+
+        const actionCell = document.createElement("td");
+        actionCell.className = "actions";
+
+        const saveButton = document.createElement("button");
+        saveButton.type = "button";
+        saveButton.className = "primary";
+        saveButton.textContent = "수정";
+        saveButton.addEventListener("click", () => updateUser(user.ID, row));
+
+        const deleteButton = document.createElement("button");
+        deleteButton.type = "button";
+        deleteButton.className = "danger";
+        deleteButton.textContent = "삭제";
+        deleteButton.addEventListener("click", () => deleteUser(user.ID, user.Name));
+
+        actionCell.append(saveButton, deleteButton);
+        row.appendChild(actionCell);
+        userRowsEl.appendChild(row);
+      });
+    }
+
+    async function saveBatch() {
+      const users = readCreateRows();
+      if (users.length === 0) {
+        setStatus("추가할 사용자를 입력해주세요.", true);
+        return;
+      }
+      if (users.some((user) => !validateUser(user))) {
+        setStatus("이름, 이메일, Slack User ID, 생일을 모두 입력해주세요.", true);
+        return;
+      }
+
+      saveBatchButton.disabled = true;
+      try {
+        await requestJSON("/api/slack-users/batch", {
+          method: "POST",
+          body: JSON.stringify(users.map((user) => ({
+            ...user,
+            birthday: toApiBirthday(user.birthday)
+          })))
+        });
+        createRowsEl.replaceChildren();
+        addCreateRow();
+        await loadUsers();
+        setStatus(`${users.length}명의 사용자를 추가했습니다.`);
+      } catch (error) {
+        setStatus(error.message, true);
+      } finally {
+        saveBatchButton.disabled = false;
+      }
+    }
+
+    async function updateUser(id, row) {
+      const name = getInput(row, "name").value.trim();
+      const email = getInput(row, "email").value.trim();
+      const birthday = getInput(row, "birthday").value;
+
+      if (!name || !email || !birthday) {
+        setStatus("수정할 이름, 이메일, 생일을 모두 입력해주세요.", true);
+        return;
+      }
+
+      try {
+        await requestJSON(`/api/slack-users/${id}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            name,
+            email,
+            birthday: toApiBirthday(birthday)
+          })
+        });
+        await loadUsers();
+        setStatus("사용자 정보를 수정했습니다.");
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    async function deleteUser(id, name) {
+      if (!confirm(`${name} 사용자를 삭제할까요?`)) return;
+
+      try {
+        await requestJSON(`/api/slack-users/${id}`, { method: "DELETE" });
+        await loadUsers();
+        setStatus("사용자를 삭제했습니다.");
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    reloadButton.addEventListener("click", loadUsers);
+    addRowButton.addEventListener("click", addCreateRow);
+    saveBatchButton.addEventListener("click", saveBatch);
+
+    addCreateRow();
+    loadUsers();
+  </script>
+</body>
+</html>
