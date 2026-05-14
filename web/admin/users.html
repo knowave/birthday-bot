@@ -151,6 +151,16 @@
       color: #475467;
     }
 
+    select {
+      min-height: 34px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+      padding: 6px 8px;
+    }
+
     .actions {
       display: flex;
       gap: 6px;
@@ -214,12 +224,29 @@
     </section>
 
     <section class="panel" aria-labelledby="list-title">
-      <h2 id="list-title">사용자 목록</h2>
+      <div class="toolbar" style="justify-content: space-between; margin-bottom: 10px;">
+        <h2 id="list-title" style="margin-bottom: 0;">사용자 목록</h2>
+        <div class="toolbar">
+          <label>
+            정렬
+            <select id="sortSelect">
+              <option value="birthday">생일</option>
+              <option value="name">이름</option>
+            </select>
+          </label>
+          <label>
+            순서
+            <select id="orderSelect">
+              <option value="asc">오름차순</option>
+              <option value="desc">내림차순</option>
+            </select>
+          </label>
+        </div>
+      </div>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th style="width: 64px;">ID</th>
               <th>이름</th>
               <th>이메일</th>
               <th>Slack User ID</th>
@@ -242,6 +269,8 @@
     const reloadButton = document.querySelector("#reloadButton");
     const addRowButton = document.querySelector("#addRowButton");
     const saveBatchButton = document.querySelector("#saveBatchButton");
+    const sortSelect = document.querySelector("#sortSelect");
+    const orderSelect = document.querySelector("#orderSelect");
 
     function setStatus(message, isError = false) {
       statusEl.textContent = message;
@@ -335,7 +364,11 @@
       setStatus("사용자 목록을 불러오는 중입니다.");
       reloadButton.disabled = true;
       try {
-        const users = await requestJSON("/api/slack-users");
+        const params = new URLSearchParams({
+          sort: sortSelect.value,
+          order: orderSelect.value
+        });
+        const users = await requestJSON(`/api/slack-users?${params.toString()}`);
         renderUsers(users);
         setStatus(`${users.length}명의 사용자를 불러왔습니다.`);
       } catch (error) {
@@ -351,9 +384,6 @@
 
       users.forEach((user) => {
         const row = document.createElement("tr");
-        const idCell = document.createElement("td");
-        idCell.textContent = user.ID;
-        row.appendChild(idCell);
         row.appendChild(inputCell("name", "text", user.Name));
         row.appendChild(inputCell("email", "email", user.Email));
         row.appendChild(inputCell("slack_user_id", "text", user.SlackUserID, true));
@@ -453,6 +483,8 @@
     reloadButton.addEventListener("click", loadUsers);
     addRowButton.addEventListener("click", addCreateRow);
     saveBatchButton.addEventListener("click", saveBatch);
+    sortSelect.addEventListener("change", loadUsers);
+    orderSelect.addEventListener("change", loadUsers);
 
     addCreateRow();
     loadUsers();

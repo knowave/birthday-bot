@@ -48,15 +48,29 @@ func (r *SlackUserRepository) FindByBirthday(month time.Month, day int) ([]domai
 	return slackUsers, nil
 }
 
-func (r *SlackUserRepository) FindAll() ([]domain.SlackUser, error) {
+func (r *SlackUserRepository) FindAll(sort, order string) ([]domain.SlackUser, error) {
 	var users []domain.SlackUser
-	err := r.db.Find(&users).Error
+	err := r.db.Order(slackUserOrderClause(sort, order)).Find(&users).Error
 
 	if err != nil {
 		return nil, err
 	}
 
 	return users, nil
+}
+
+func slackUserOrderClause(sort, order string) string {
+	direction := "ASC"
+	if order == "desc" {
+		direction = "DESC"
+	}
+
+	switch sort {
+	case "name":
+		return "name " + direction
+	default:
+		return "MONTH(birthday) " + direction + ", DAY(birthday) " + direction + ", birthday " + direction
+	}
 }
 
 func (r *SlackUserRepository) Save(user *domain.SlackUser) error {
